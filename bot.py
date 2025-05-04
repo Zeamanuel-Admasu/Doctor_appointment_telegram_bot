@@ -42,20 +42,26 @@ app.post_init = set_bot_commands
 
 # Flask app for webhook
 flask_app = Flask(__name__)
-
 @flask_app.route(f"/webhook/{BOT_TOKEN}", methods=["POST"])
 def webhook_handler():
     update_data = request.get_json(force=True)
     update = Update.de_json(update_data, app.bot)
 
+    async def process():
+        await app.process_update(update)
+
     try:
         loop = asyncio.get_running_loop()
-        loop.create_task(app.process_update(update))
+        asyncio.ensure_future(process())  # safe way to schedule async in Flask
     except RuntimeError:
-        # If not in an event loop, run it directly (for rare sync fallback cases)
-        asyncio.run(app.process_update(update))
+        # Flask might not have an event loop yet — fallback to background task
+        new_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(new_loop)
+        new_loop.run_until_complete(process())
+        new_loop.close()
 
     return "ok"
+
 
 # Keep-alive ping every 15 minutes
 def ping_self():
