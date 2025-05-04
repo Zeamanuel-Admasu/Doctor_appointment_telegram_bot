@@ -66,10 +66,10 @@ scheduler.add_job(ping_self, 'interval', minutes=15)
 scheduler.start()
 
 if __name__ == "__main__":
-    # Set webhook on startup
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook/{BOT_TOKEN}"))
-    print("Webhook set. Flask app running...")
+    async def startup():
+        await app.initialize()  # 👈 Important fix
+        await app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook/{BOT_TOKEN}")
+        print("Webhook set. Flask app running...")
 
-    # Start Flask server
+    asyncio.run(startup())
     flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
