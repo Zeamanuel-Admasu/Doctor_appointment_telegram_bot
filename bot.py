@@ -66,6 +66,7 @@ scheduler.add_job(ping_self, 'interval', minutes=15)
 scheduler.start()
 
 async def setup_and_run():
+    await app.initialize() 
     await app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook/{BOT_TOKEN}")
     print("Webhook set. Flask app running...")
     flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
