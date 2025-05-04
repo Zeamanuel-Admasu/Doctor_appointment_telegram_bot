@@ -48,7 +48,13 @@ def webhook_handler():
     update_data = request.get_json(force=True)
     update = Update.de_json(update_data, app.bot)
 
-    asyncio.create_task(app.process_update(update))
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(app.process_update(update))
+    except RuntimeError:
+        # If not in an event loop, run it directly (for rare sync fallback cases)
+        asyncio.run(app.process_update(update))
+
     return "ok"
 
 # Keep-alive ping every 15 minutes
