@@ -7,6 +7,7 @@ from flask import Flask, request
 from telegram import BotCommand
 import datetime, os, asyncio
 from dotenv import load_dotenv
+from telegram import Update
 
 load_dotenv()
 
@@ -44,8 +45,9 @@ flask_app = Flask(__name__)
 
 @flask_app.route(f"/webhook/{BOT_TOKEN}", methods=["POST"])
 def webhook_handler():
-    update = request.get_json(force=True)
-    app.update_queue.put_nowait(app._update_queue._application.bot._parser.parse(update=update, bot=app.bot))
+    update_data = request.get_json(force=True)
+    update = Update.de_json(update_data, app.bot)
+    asyncio.create_task(app.process_update(update))
     return "ok"
 
 # Keep-alive ping every 15 minutes
