@@ -65,11 +65,10 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(ping_self, 'interval', minutes=15)
 scheduler.start()
 
-if __name__ == "__main__":
-    async def startup():
-        await app.initialize()  # 👈 Important fix
-        await app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook/{BOT_TOKEN}")
-        print("Webhook set. Flask app running...")
-
-    asyncio.run(startup())
+async def setup_and_run():
+    await app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook/{BOT_TOKEN}")
+    print("Webhook set. Flask app running...")
     flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
+if __name__ == "__main__":
+    asyncio.run(setup_and_run())
