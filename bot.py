@@ -47,8 +47,15 @@ flask_app = Flask(__name__)
 def webhook_handler():
     update_data = request.get_json(force=True)
     update = Update.de_json(update_data, app.bot)
-    asyncio.get_event_loop().create_task(app.process_update(update))
+
+    async def handle_update():
+        await app.process_update(update)
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(handle_update())
     return "ok"
+
 
 # Keep-alive ping every 15 minutes
 def ping_self():
